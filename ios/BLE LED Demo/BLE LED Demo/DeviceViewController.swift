@@ -18,10 +18,10 @@ class DeviceViewController: UIViewController {
     
     @IBOutlet weak var reconnectButton: UIButton!
     @IBOutlet weak var statusLabel: UILabel!
-    
     @IBOutlet weak var consoleText: UITextView!
     @IBOutlet weak var swithLabel: UILabel!
     @IBOutlet weak var sw1: UISwitch!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBAction func toggle(sender: AnyObject) {
         println("toggled is " + (sw1.on ? "on" : "off" ))
@@ -38,17 +38,29 @@ class DeviceViewController: UIViewController {
     }
     
     @IBAction func reconnectButtonClick(sender: AnyObject) {
-        self.connect()
+        //if(self.reconnectButton.titleLabel?.text == "Connect") {
+            self.connect()
+        //} else {
+         ///   self.disconnect()
+        //}
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        self.activityIndicator.hidesWhenStopped = true
+        self.reconnectButton.titleLabel?.text = "Connect"
     }
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
-        self.connect()
+        
+        if(self.ble.activePeripheral == nil || !self.ble.isConnected()) {
+            self.connect()
+        } else {
+            self.reconnectButton.enabled = false
+            self.statusLabel.text = "Connected"
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -56,12 +68,22 @@ class DeviceViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    func disconnect() {
+        if(self.p == nil) {
+            self.p = findPeripheral()
+        }
+        
+    }
+    
     func connect() {
         if(self.p == nil) {
             self.p = findPeripheral()
         }
         
-        ble.connectPeripheral(self.p)
+        self.statusLabel.text = "Connecting..."
+        //self.activityIndicator.startAnimating()
+        self.reconnectButton.enabled = false
+        self.ble.connectPeripheral(self.p)
     }
     
     func findPeripheral() -> CBPeripheral? {
@@ -82,14 +104,20 @@ class DeviceViewController: UIViewController {
     {
         println("->Connected")
         self.statusLabel.text = "Connected"
+        //self.reconnectButton.titleLabel?.text = "Disconnect"
+        
         self.reconnectButton.enabled = false
+        self.activityIndicator.stopAnimating()
     }
     
     func bleDidDisconnect()
     {
         println("->disconnected")
         self.statusLabel.text = "Disconnected"
+        //self.reconnectButton.titleLabel?.text = "Connect"
+        
         self.reconnectButton.enabled = true
+        self.activityIndicator.stopAnimating()
     }
     
     func bleDidReceiveData(data: UnsafeMutablePointer<UInt8>, length: Int32) {

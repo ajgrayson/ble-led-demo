@@ -94,7 +94,7 @@ class DevicesTableViewController: UITableViewController, BLEDelegate {
     func connectionTimer(timer: NSTimer) {
         self.devices.removeAll(keepCapacity: false)
         
-        if(self.ble.peripherals.count > 0) {
+        if(self.ble.peripherals != nil && self.ble.peripherals.count > 0) {
             var i = 0, len = self.ble.peripherals.count;
             for(i = 0; i < len; i++) {
                 var p : CBPeripheral = self.ble.peripherals.objectAtIndex(i) as CBPeripheral
@@ -107,9 +107,9 @@ class DevicesTableViewController: UITableViewController, BLEDelegate {
                     self.devices.append(d)
                 }
             }
-            
-            self.tableView.reloadData()
         }
+        
+        self.tableView.reloadData()
     }
 
     func refreshPeripherals() {
